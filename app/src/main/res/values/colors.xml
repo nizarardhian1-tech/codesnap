@@ -1,21 +1,39 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="bg_primary">#FF1E1E1E</color>
-    <color name="bg_secondary">#FF252526</color>
-    <color name="bg_card">#FF2D2D2D</color>
-    <color name="bg_input">#FF3C3C3C</color>
-    <color name="accent">#FF569CD6</color>
-    <color name="accent_green">#FF4EC9B0</color>
-    <color name="accent_orange">#FFCE9178</color>
-    <color name="accent_yellow">#FFDCDCAA</color>
-    <color name="text_primary">#FFD4D4D4</color>
-    <color name="text_secondary">#FF9D9D9D</color>
-    <color name="text_accent">#FF569CD6</color>
-    <color name="divider">#FF3E3E3E</color>
-    <color name="folder_color">#FFE8C17A</color>
-    <color name="match_highlight">#664FC3F7</color>
-    <color name="nav_selected">#FF569CD6</color>
-    <color name="nav_unselected">#FF9D9D9D</color>
-    <color name="danger">#FFF44747</color>
-    <color name="success">#FF4EC9B0</color>
+    <!-- Dracula Theme Colors -->
+    <color name="bg_primary">#282A36</color>
+    <color name="bg_secondary">#44475A</color>
+    <color name="bg_card">#343746</color>
+    <color name="bg_highlight">#6272A4</color>
+
+    <color name="text_primary">#F8F8F2</color>
+    <color name="text_secondary">#6272A4</color>
+    <color name="text_muted">#44475A</color>
+
+    <color name="accent">#FF79C6</color>
+    <color name="accent_secondary">#BD93F9</color>
+    <color name="success">#50FA7B</color>
+    <color name="warning">#F1FA8C</color>
+    <color name="error">#FF5555</color>
+    <color name="info">#8BE9FD</color>
+
+    <!-- Syntax Highlighting -->
+    <color name="keyword">#FF79C6</color>
+    <color name="string">#F1FA8C</color>
+    <color name="comment">#6272A4</color>
+    <color name="number">#BD93F9</color>
+    <color name="function">#50FA7B</color>
+    <color name="type">#8BE9FD</color>
+    <color name="operator">#FFB86C</color>
+    <color name="bracket_match">#FFB86C</color>
+
+    <!-- UI Elements -->
+    <color name="match_highlight">#44475A</color>
+    <color name="current_line">#44475A</color>
+    <color name="line_number">#6272A4</color>
+    <color name="border">#6272A4</color>
+
+    <!-- Button States -->
+    <color name="button_enabled">#FF79C6</color>
+    <color name="button_disabled">#6272A4</color>
 </resources>
