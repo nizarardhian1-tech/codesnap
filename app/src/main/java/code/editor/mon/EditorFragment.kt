@@ -77,13 +77,13 @@ class EditorFragment : Fragment() {
     )
 
     override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
-        _binding = FragmentEditorBinding.inflate(inflater, container, false)
-        return binding.root
-    }
+    inflater: LayoutInflater,
+    container: ViewGroup?,
+    savedInstanceState: Bundle?
+): View {
+    _binding = FragmentEditorBinding.inflate(inflater, container, false)
+    return binding.root
+}
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -100,8 +100,12 @@ class EditorFragment : Fragment() {
         setupFindBar()
     }
 
+    private fun getBinding(): FragmentEditorBinding {
+        return binding ?: throw IllegalStateException("Binding is null")
+    }
+
     private fun setupEditor() {
-        val b = binding
+        val b = getBinding()
         b.editCode.typeface = Typeface.MONOSPACE
         b.editCode.textSize = 14f
         b.editCode.lineSpacingMultiplier = 1.3f
@@ -150,7 +154,7 @@ class EditorFragment : Fragment() {
     }
 
     private fun handleBracketInsert(char: Char) {
-        val b = binding
+        val b = getBinding()
         val start = b.editCode.selectionStart
         val end = b.editCode.selectionEnd
         val text = b.editCode.text.toString()
@@ -169,7 +173,7 @@ class EditorFragment : Fragment() {
     }
 
     private fun insertTab() {
-        val b = binding
+        val b = getBinding()
         val start = b.editCode.selectionStart
         val end = b.editCode.selectionEnd
         val text = b.editCode.text.toString()
@@ -182,7 +186,7 @@ class EditorFragment : Fragment() {
     }
 
     private fun pushUndoState(content: String, selectionStart: Int, selectionEnd: Int) {
-        val b = binding
+        val b = getBinding()
         undoStack.addLast(
             EditState(
                 content = content,
@@ -203,7 +207,7 @@ class EditorFragment : Fragment() {
     }
 
     private fun setupActionButtons() {
-        val b = binding
+        val b = getBinding()
         b.btnSave.setOnClickListener { saveFile() }
         b.btnUndo.setOnClickListener { doUndo() }
         b.btnRedo?.setOnClickListener { doRedo() }
@@ -214,7 +218,7 @@ class EditorFragment : Fragment() {
     }
 
     private fun setupFindBar() {
-        val b = binding
+        val b = getBinding()
         b.btnFindNext.setOnClickListener { navigateFind(+1) }
         b.btnFindPrev.setOnClickListener { navigateFind(-1) }
         b.btnCloseFindBar.setOnClickListener {
@@ -235,7 +239,7 @@ class EditorFragment : Fragment() {
     }
 
     private fun loadFile(req: FileOpenRequest) {
-        val b = binding
+        val b = getBinding()
         currentUri = req.uri
         currentFileName = req.fileName
         isLocal = req.isLocal
@@ -297,7 +301,7 @@ class EditorFragment : Fragment() {
     }
 
     private fun saveFile() {
-        val b = binding
+        val b = getBinding()
         val uri = currentUri ?: return
         val content = b.editCode.text.toString()
 
@@ -318,7 +322,7 @@ class EditorFragment : Fragment() {
     }
 
     private fun doUndo() {
-        val b = binding
+        val b = getBinding()
         if (undoStack.size <= 1) {
             toast("Nothing to undo")
             return
@@ -363,7 +367,7 @@ class EditorFragment : Fragment() {
     }
 
     private fun doRedo() {
-        val b = binding
+        val b = getBinding()
         if (redoStack.isEmpty()) {
             toast("Nothing to redo")
             return
@@ -401,7 +405,7 @@ class EditorFragment : Fragment() {
     }
 
     private fun updateUndoRedoButtons() {
-        val b = binding
+        val b = getBinding()
         b.btnUndo.isEnabled = undoStack.size > 1
         b.btnRedo?.isEnabled = redoStack.isNotEmpty()
     }
@@ -415,7 +419,7 @@ class EditorFragment : Fragment() {
     }
 
     private fun applySyntaxHighlighting() {
-        val b = binding
+        val b = getBinding()
         val text = b.editCode.text.toString()
         if (text.isEmpty()) return
 
@@ -513,7 +517,7 @@ class EditorFragment : Fragment() {
     }
 
     private fun detectErrors() {
-        val b = binding
+        val b = getBinding()
         val text = b.editCode.text.toString()
         val spannable = SpannableString(text)
 
@@ -542,7 +546,7 @@ class EditorFragment : Fragment() {
     }
 
     private fun toggleFindBar() {
-        val b = binding
+        val b = getBinding()
         if (b.layoutFindBar.visibility == View.VISIBLE) {
             b.layoutFindBar.visibility = View.GONE
             clearHighlights()
@@ -554,7 +558,7 @@ class EditorFragment : Fragment() {
     }
 
     private fun doFindInFile() {
-        val b = binding
+        val b = getBinding()
         val query = b.etFindInFile.text.toString()
         if (query.isEmpty()) { clearHighlights(); b.tvFindCount.text = ""; return }
         if (query == lastFindQuery) return
@@ -578,7 +582,7 @@ class EditorFragment : Fragment() {
     }
 
     private fun navigateFind(dir: Int) {
-        val b = binding
+        val b = getBinding()
         if (findMatches.isEmpty()) return
         findMatchIdx = (findMatchIdx + dir + findMatches.size) % findMatches.size
         b.tvFindCount.text = "${findMatchIdx + 1}/${findMatches.size}"
@@ -586,7 +590,7 @@ class EditorFragment : Fragment() {
     }
 
     private fun highlightAllMatches(query: String) {
-        val b = binding
+        val b = getBinding()
         val text = b.editCode.text.toString()
         val spannable = SpannableString(text)
         val highlightColor = requireContext().getColor(R.color.match_highlight)
@@ -612,7 +616,7 @@ class EditorFragment : Fragment() {
     }
 
     private fun scrollToLine(lineIndex: Int) {
-        val b = binding
+        val b = getBinding()
         b.editCode.post {
             val layout = b.editCode.layout ?: return@post
             if (lineIndex < layout.lineCount) {
@@ -623,7 +627,7 @@ class EditorFragment : Fragment() {
     }
 
     private fun scrollToChar(charIndex: Int) {
-        val b = binding
+        val b = getBinding()
         b.editCode.post {
             val layout = b.editCode.layout ?: return@post
             val line = layout.getLineForOffset(charIndex.coerceIn(0, b.editCode.text.length))
@@ -648,7 +652,7 @@ class EditorFragment : Fragment() {
     }
 
     private fun insertSnippet(snippet: String) {
-        val b = binding
+        val b = getBinding()
         val start = b.editCode.selectionStart
         val text = b.editCode.text.toString()
         val newText = text.substring(0, start) + snippet + text.substring(start)
@@ -676,7 +680,7 @@ class EditorFragment : Fragment() {
     }
 
     private fun showFontSizeDialog() {
-        val b = binding
+        val b = getBinding()
         val sizes = arrayOf("12sp", "14sp", "16sp", "18sp", "20sp")
         AlertDialog.Builder(requireContext())
             .setTitle("Font Size")
@@ -716,7 +720,7 @@ class EditorFragment : Fragment() {
 
     private fun showReplaceDialog() {
         val dialogBinding = DialogReplaceBinding.inflate(layoutInflater)
-        val b = binding
+        val b = getBinding()
         if (b.layoutFindBar.visibility == View.VISIBLE) {
             dialogBinding.etFindText.setText(b.etFindInFile.text)
         }
@@ -784,7 +788,7 @@ class EditorFragment : Fragment() {
     }
 
     private fun updateModifiedIndicator() {
-        val b = binding
+        val b = getBinding()
         b.tvModified.visibility = if (isModified) View.VISIBLE else View.GONE
     }
 
@@ -793,9 +797,9 @@ class EditorFragment : Fragment() {
     }
 
     override fun onDestroyView() {
-        syntaxHighlightJob?.cancel()
-        errorHighlightJob?.cancel()
-        super.onDestroyView()
-        _binding = null
-    }
+    syntaxHighlightJob?.cancel()
+    errorHighlightJob?.cancel()
+    super.onDestroyView()
+    _binding = null
+}
 }
