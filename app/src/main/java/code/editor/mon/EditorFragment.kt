@@ -1,10 +1,12 @@
 package code.editor.mon
 
 import android.app.AlertDialog
+import android.graphics.Color
+import android.graphics.Typeface
 import android.net.Uri
 import android.os.Bundle
 import android.text.*
-import android.text.style.BackgroundColorSpan
+import android.text.style.*
 import android.util.Log
 import android.view.*
 import android.view.inputmethod.EditorInfo
@@ -33,15 +35,32 @@ class EditorFragment : Fragment() {
     // MAX FILE SIZE: 5MB untuk mencegah OOM
     private val MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024
 
-    // Undo stack dengan Command Pattern untuk efisiensi memory
+    // Undo/Redo stack dengan state lengkap
     private data class EditState(val content: String, val selectionStart: Int, val selectionEnd: Int)
     private val undoStack = ArrayDeque<EditState>()
+    private val redoStack = ArrayDeque<EditState>()
+    
+    // Flag untuk ignore text change saat undo/redo
     private var ignoreTextChange = false
+    
+    // Flag untuk track apakah sudah push undo state
+    private var shouldPushUndo = true
 
     // Find-in-file state
     private var findMatches: List<Int> = emptyList()
     private var findMatchIdx = -1
     private var lastFindQuery = ""
+
+    // Syntax highlighting keywords (Kotlin/Java basic)
+    private val keywords = setOf(
+        "fun", "val", "var", "class", "object", "interface", "enum", "data",
+        "if", "else", "when", "for", "while", "do", "try", "catch", "finally",
+        "return", "break", "continue", "throw", "in", "is", "as", "null",
+        "true", "false", "override", "public", "private", "protected", "internal",
+        "import", "package", "companion", "sealed", "abstract", "final", "open",
+        "const", "lateinit", "suspend", "coroutine", "async", "await", "let",
+        "run", "apply", "also", "takeIf", "takeUnless", "also", "repeat"
+    )
 
     override fun onCreateView(i: LayoutInflater, c: ViewGroup?, s: Bundle?) =
         FragmentEditorBinding.inflate(i, c, false).also { _b = it }.root
@@ -57,38 +76,100 @@ class EditorFragment : Fragment() {
             vm.openFileRequest.value = null
         }
 
-        // Track modifications
-        b.editCode.addTextChangedListener(object : TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, st: Int, c: Int, a: Int) {}
-            override fun onTextChanged(s: CharSequence?, st: Int, b: Int, c: Int) {}
-            override fun afterTextChanged(s: Editable?) {
-                if (!ignoreTextChange && currentUri != null) {
-                    val modified = s.toString() != originalContent
-                    if (modified != isModified) {
-                        isModified = modified
-                        updateModifiedIndicator()
-                    }
-                }
-            }
-        })
+        // Setup EditText dengan line numbers dan syntax highlighting
+        setupEditor()
 
         // Action buttons
         b.btnSave.setOnClickListener { saveFile() }
         b.btnUndo.setOnClickListener { doUndo() }
+        b.btnRedo?.setOnClickListener { doRedo() } // Jika ada btnRedo di layout
         b.btnFind.setOnClickListener { toggleFindBar() }
         b.btnReplace.setOnClickListener { showReplaceDialog() }
 
         // Find bar
         b.btnFindNext.setOnClickListener { navigateFind(+1) }
         b.btnFindPrev.setOnClickListener { navigateFind(-1) }
-        b.btnCloseFindBar.setOnClickListener { b.layoutFindBar.visibility = View.GONE; clearHighlights() }
+        b.btnCloseFindBar.setOnClickListener { 
+            b.layoutFindBar.visibility = View.GONE
+            clearHighlights() 
+        }
         b.etFindInFile.setOnEditorActionListener { _, actionId, _ ->
-            if (actionId == EditorInfo.IME_ACTION_SEARCH) { doFindInFile(); true } else false
+            if (actionId == EditorInfo.IME_ACTION_SEARCH) { 
+                doFindInFile()
+                true 
+            } else false
         }
         b.etFindInFile.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, st: Int, c: Int, a: Int) {}
-            override fun onTextChanged(s: CharSequence?, st: Int, before: Int, count: Int) { doFindInFile() }
-            override fun afterTextChanged(s: Editable?) {}
+            override fun onTextChanged(s: CharSequence?, st: Int, before: Int, count: Int) {}
+            override fun afterTextChanged(s: Editable?) { 
+                doFindInFile() 
+            }
+        })
+    }
+
+    private fun setupEditor() {
+        // Set monospace font
+        b.editCode.typeface = Typeface.MONOSPACE
+        
+        // Set tab size (4 spaces)
+        b.editCode.setOnKeyListener { _, keyCode, event ->
+            if (keyCode == KeyEvent.KEYCODE_TAB && event.action == KeyEvent.ACTION_DOWN) {
+                val start = b.editCode.selectionStart
+                val end = b.editCode.selectionEnd
+                b.editCode.text?.replace(start.coerceAtLeast(0), end.coerceAtMost(b.editCode.text?.length ?: 0), "    ")
+                b.editCode.setSelection(start + 4)
+                return@setOnKeyListener true
+            }
+            false
+        }
+
+        // Text change listener untuk undo tracking dan syntax highlighting
+        b.editCode.addTextChangedListener(object : TextWatcher {
+            private var beforeText: CharSequence = ""
+            
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
+                if (!ignoreTextChange && shouldPushUndo && s != null) {
+                    // Capture state BEFORE change for undo
+                    beforeText = s.toString()
+                }
+            }
+
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                // Update line numbers if you have line number view
+                updateLineNumbers()
+            }
+
+            override fun afterTextChanged(s: Editable?) {
+                if (!ignoreTextChange && shouldPushUndo) {
+                    // Push undo state dengan content SEBELUM perubahan
+                    if (beforeText.isNotEmpty()) {
+                        undoStack.addLast(EditState(
+                            content = beforeText.toString(),
+                            selectionStart = b.editCode.selectionStart,
+                            selectionEnd = b.editCode.selectionEnd
+                        ))
+                        if (undoStack.size > 50) undoStack.removeFirst()
+                        redoStack.clear() // Clear redo stack on new edit
+                        updateUndoRedoButtons()
+                    }
+                    shouldPushUndo = false // Reset flag
+                    
+                    // Check modification
+                    val modified = s.toString() != originalContent
+                    if (modified != isModified) {
+                        isModified = modified
+                        updateModifiedIndicator()
+                    }
+                    
+                    // Apply syntax highlighting (debounced)
+                    b.editCode.postDelayed({
+                        if (!ignoreTextChange) {
+                            applySyntaxHighlighting()
+                        }
+                    }, 300)
+                }
+            }
         })
     }
 
@@ -102,9 +183,14 @@ class EditorFragment : Fragment() {
         b.scrollEditor.visibility = View.VISIBLE
         b.layoutActions.visibility = View.VISIBLE
         b.layoutFindBar.visibility = View.GONE
+        
+        // Clear stacks
         undoStack.clear()
+        redoStack.clear()
+        shouldPushUndo = true
         isModified = false
         updateModifiedIndicator()
+        updateUndoRedoButtons()
 
         lifecycleScope.launch {
             val content = withContext(Dispatchers.IO) {
@@ -128,6 +214,10 @@ class EditorFragment : Fragment() {
             ignoreTextChange = true
             b.editCode.setText(content)
             ignoreTextChange = false
+            
+            // Apply initial syntax highlighting
+            applySyntaxHighlighting()
+            updateLineNumbers()
 
             // Scroll to line if requested
             if (req.lineNumber > 0) {
@@ -155,6 +245,9 @@ class EditorFragment : Fragment() {
                 originalContent = content
                 isModified = false
                 updateModifiedIndicator()
+                undoStack.clear() // Clear undo stack after save
+                redoStack.clear()
+                updateUndoRedoButtons()
                 toast("✓ Saved")
             } else {
                 toast("Save failed!")
@@ -164,30 +257,151 @@ class EditorFragment : Fragment() {
     }
 
     private fun doUndo() {
-        if (undoStack.isNotEmpty()) {
-            val prev = undoStack.removeLast()
-            ignoreTextChange = true
-            b.editCode.setText(prev.content)
-            b.editCode.setSelection(prev.selectionStart, prev.selectionEnd)
-            ignoreTextChange = false
-            isModified = prev.content != originalContent
-            updateModifiedIndicator()
-            b.btnUndo.isEnabled = undoStack.isNotEmpty()
-            toast("Undone")
-        } else {
+        if (undoStack.isEmpty()) {
             toast("Nothing to undo")
+            return
         }
-    }
-
-    private fun pushUndo() {
-        val current = b.editCode.text.toString()
-        undoStack.addLast(EditState(
-            content = current,
+        
+        val currentContent = b.editCode.text.toString()
+        val currentSelection = EditState(
+            content = currentContent,
             selectionStart = b.editCode.selectionStart,
             selectionEnd = b.editCode.selectionEnd
-        ))
-        if (undoStack.size > 30) undoStack.removeFirst()
-        b.btnUndo.isEnabled = true
+        )
+        
+        val prev = undoStack.removeLast()
+        
+        // Push current state to redo stack
+        redoStack.addLast(currentSelection)
+        
+        ignoreTextChange = true
+        shouldPushUndo = false
+        b.editCode.setText(prev.content)
+        b.editCode.setSelection(prev.selectionStart, prev.selectionEnd)
+        ignoreTextChange = false
+        
+        isModified = prev.content != originalContent
+        updateModifiedIndicator()
+        updateUndoRedoButtons()
+        applySyntaxHighlighting()
+        
+        toast("Undone")
+    }
+
+    private fun doRedo() {
+        if (redoStack.isEmpty()) {
+            toast("Nothing to redo")
+            return
+        }
+        
+        val currentContent = b.editCode.text.toString()
+        val currentSelection = EditState(
+            content = currentContent,
+            selectionStart = b.editCode.selectionStart,
+            selectionEnd = b.editCode.selectionEnd
+        )
+        
+        val next = redoStack.removeLast()
+        
+        // Push current state to undo stack
+        undoStack.addLast(currentSelection)
+        
+        ignoreTextChange = true
+        shouldPushUndo = false
+        b.editCode.setText(next.content)
+        b.editCode.setSelection(next.selectionStart, next.selectionEnd)
+        ignoreTextChange = false
+        
+        isModified = next.content != originalContent
+        updateModifiedIndicator()
+        updateUndoRedoButtons()
+        applySyntaxHighlighting()
+        
+        toast("Redone")
+    }
+
+    private fun updateUndoRedoButtons() {
+        b.btnUndo.isEnabled = undoStack.isNotEmpty()
+        b.btnRedo?.isEnabled = redoStack?.isNotEmpty() ?: false
+    }
+
+    private fun updateLineNumbers() {
+        // Jika ada line number view di layout, update di sini
+        // Contoh: b.lineNumbers.text = buildLineNumbers()
+        val lineCount = b.editCode.text?.lines()?.size ?: 1
+        // Implementasi line numbers tergantung layout Anda
+    }
+
+    private fun applySyntaxHighlighting() {
+        val text = b.editCode.text.toString()
+        if (text.isEmpty()) return
+        
+        val spannable = SpannableString(text)
+        val keywordColor = Color.parseColor("#FF79C6") // Pink untuk keywords
+        val stringColor = Color.parseColor("#F1FA8C") // Yellow untuk strings
+        val commentColor = Color.parseColor("#6272A4") // Gray untuk comments
+        
+        // Highlight keywords
+        val words = text.split(Regex("[^a-zA-Z0-9_]"))
+        var offset = 0
+        for (word in words) {
+            if (word in keywords) {
+                val start = text.indexOf(word, offset, ignoreCase = false)
+                if (start != -1) {
+                    val end = start + word.length
+                    if (end <= spannable.length) {
+                        spannable.setSpan(
+                            ForegroundColorSpan(keywordColor),
+                            start, end,
+                            Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+                        )
+                    }
+                    offset = end
+                }
+            } else {
+                offset += word.length + 1
+            }
+        }
+        
+        // Highlight strings (basic - between quotes)
+        var inString = false
+        var stringStart = -1
+        for (i in text.indices) {
+            if (text[i] == '"' && (i == 0 || text[i-1] != '\\')) {
+                if (!inString) {
+                    inString = true
+                    stringStart = i
+                } else {
+                    spannable.setSpan(
+                        ForegroundColorSpan(stringColor),
+                        stringStart, i + 1,
+                        Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+                    )
+                    inString = false
+                }
+            }
+        }
+        
+        // Highlight comments (// style)
+        val lines = text.split("\n")
+        var charOffset = 0
+        for (line in lines) {
+            val commentIdx = line.indexOf("//")
+            if (commentIdx != -1) {
+                val start = charOffset + commentIdx
+                val end = charOffset + line.length
+                spannable.setSpan(
+                    ForegroundColorSpan(commentColor),
+                    start, end,
+                    Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+                )
+            }
+            charOffset += line.length + 1
+        }
+        
+        ignoreTextChange = true
+        b.editCode.setText(spannable)
+        ignoreTextChange = false
     }
 
     private fun toggleFindBar() {
@@ -203,7 +417,11 @@ class EditorFragment : Fragment() {
 
     private fun doFindInFile() {
         val query = b.etFindInFile.text.toString()
-        if (query.isEmpty()) { clearHighlights(); b.tvFindCount.text = ""; return }
+        if (query.isEmpty()) { 
+            clearHighlights()
+            b.tvFindCount.text = ""
+            return 
+        }
         if (query == lastFindQuery) return
         lastFindQuery = query
 
@@ -232,8 +450,14 @@ class EditorFragment : Fragment() {
     }
 
     private fun highlightAllMatches(query: String) {
-        val spannable = SpannableString(b.editCode.text.toString())
+        val text = b.editCode.text.toString()
+        val spannable = SpannableString(text)
         val highlightColor = requireContext().getColor(R.color.match_highlight)
+        
+        // First apply syntax highlighting
+        applySyntaxHighlightingToSpannable(spannable)
+        
+        // Then apply find highlights on top
         for (start in findMatches) {
             spannable.setSpan(
                 BackgroundColorSpan(highlightColor),
@@ -241,17 +465,48 @@ class EditorFragment : Fragment() {
                 Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
             )
         }
+        
         ignoreTextChange = true
+        shouldPushUndo = false
         b.editCode.setText(spannable)
         ignoreTextChange = false
     }
 
+    private fun applySyntaxHighlightingToSpannable(spannable: SpannableString) {
+        val text = spannable.toString()
+        val keywordColor = Color.parseColor("#FF79C6")
+        
+        for (keyword in keywords) {
+            var idx = 0
+            while (true) {
+                val start = text.indexOf(keyword, idx)
+                if (start == -1) break
+                val end = start + keyword.length
+                // Check if it's a whole word (not part of another word)
+                val isWholeWord = (start == 0 || !text[start-1].isLetterOrDigit()) &&
+                                  (end >= text.length || !text[end].isLetterOrDigit())
+                if (isWholeWord) {
+                    spannable.setSpan(
+                        ForegroundColorSpan(keywordColor),
+                        start, end,
+                        Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+                    )
+                }
+                idx = end
+            }
+        }
+    }
+
     private fun clearHighlights() {
-        findMatches = emptyList(); findMatchIdx = -1; lastFindQuery = ""
+        findMatches = emptyList()
+        findMatchIdx = -1
+        lastFindQuery = ""
         val text = b.editCode.text.toString()
         ignoreTextChange = true
+        shouldPushUndo = false
         b.editCode.setText(text)
         ignoreTextChange = false
+        applySyntaxHighlighting()
     }
 
     private fun navigateToMatch(lineIndex: Int, query: String) {
@@ -327,13 +582,24 @@ class EditorFragment : Fragment() {
             val text = b.editCode.text.toString()
             val idx = text.indexOf(find, ignoreCase = true)
             if (idx == -1) { toast("Not found"); return@setOnClickListener }
-            pushUndo()
+            
+            // Push undo state before replace
+            undoStack.addLast(EditState(
+                content = text,
+                selectionStart = b.editCode.selectionStart,
+                selectionEnd = b.editCode.selectionEnd
+            ))
+            redoStack.clear()
+            
             val newText = text.substring(0, idx) + replace + text.substring(idx + find.length)
             ignoreTextChange = true
+            shouldPushUndo = false
             b.editCode.setText(newText)
+            b.editCode.setSelection(idx + replace.length)
             ignoreTextChange = false
             isModified = newText != originalContent
             updateModifiedIndicator()
+            updateUndoRedoButtons()
             clearHighlights()
             lastFindQuery = ""
             toast("✓ Replaced 1 occurrence")
@@ -347,13 +613,23 @@ class EditorFragment : Fragment() {
             val text = b.editCode.text.toString()
             val count = countMatches(find)
             if (count == 0) { toast("Not found"); return@setOnClickListener }
-            pushUndo()
+            
+            // Push undo state before replace all
+            undoStack.addLast(EditState(
+                content = text,
+                selectionStart = b.editCode.selectionStart,
+                selectionEnd = b.editCode.selectionEnd
+            ))
+            redoStack.clear()
+            
             val newText = text.replace(find, replace, ignoreCase = true)
             ignoreTextChange = true
+            shouldPushUndo = false
             b.editCode.setText(newText)
             ignoreTextChange = false
             isModified = newText != originalContent
             updateModifiedIndicator()
+            updateUndoRedoButtons()
             clearHighlights()
             lastFindQuery = ""
             toast("✓ Replaced $count occurrence(s)")
@@ -370,5 +646,8 @@ class EditorFragment : Fragment() {
     private fun toast(msg: String) =
         Toast.makeText(requireContext(), msg, Toast.LENGTH_SHORT).show()
 
-    override fun onDestroyView() { super.onDestroyView(); _b = null }
+    override fun onDestroyView() { 
+        super.onDestroyView()
+        _b = null 
+    }
 }
