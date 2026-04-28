@@ -218,7 +218,7 @@ class EditorFragment : Fragment() {
             )
         }
         ignoreTextChange = true
-        b.editCode.text = spannable
+        b.editCode.setText(spannable)
         ignoreTextChange = false
     }
 
