@@ -28,6 +28,15 @@ jobs:
         with:
           gradle-version: '8.4'
 
+      # ====== DEBUG: Tampilkan isi file yang bermasalah ======
+      - name: Debug - Show EditorFragment.kt
+        run: |
+          echo "=== Full file content ==="
+          cat app/src/main/java/code/editor/mon/EditorFragment.kt
+          echo ""
+          echo "=== Line 111 ==="
+          sed -n '111p' app/src/main/java/code/editor/mon/EditorFragment.kt
+
       - name: Build Debug APK
         run: gradle assembleDebug --no-daemon
 
