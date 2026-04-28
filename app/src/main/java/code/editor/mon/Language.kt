@@ -15,11 +15,9 @@ enum class Language(
             "return", "break", "continue", "throw", "in", "is", "as", "null",
             "true", "false", "override", "public", "private", "protected", "internal",
             "import", "package", "companion", "sealed", "abstract", "final", "open",
-            "const", "lateinit", "suspend", "coroutine", "async", "await", "let",
-            "run", "apply", "also", "takeIf", "takeUnless", "repeat", "unit",
-            "Int", "String", "Boolean", "Long", "Double", "Float", "Char", "Byte",
-            "Short", "Array", "List", "Map", "Set", "Collection", "Sequence", "Flow",
-            "androidx", "activity", "fragment", "viewmodel", "livedata", "coroutines"
+            "const", "lateinit", "suspend", "unit", "int", "string", "boolean",
+            "long", "double", "float", "char", "byte", "short", "array", "list",
+            "map", "set", "collection", "sequence", "flow"
         ),
         snippets = listOf(
             "fun main() {\n    \n}",
@@ -27,21 +25,16 @@ enum class Language(
             "data class DataClass(val id: Int, val name: String)",
             "object Singleton {\n    \n}",
             "interface InterfaceName {\n    \n}",
-            "enum class EnumName {\n    OPTION1, OPTION2\n}",
-            "sealed class SealedClass {\n    \n}",
-            "fun functionName(param: Type): ReturnType {\n    return value\n}",
-            "val variableName: Type = value",
-            "var mutableVariable: Type = value",
+            "fun functionName(param: String): Int {\n    return 0\n}",
+            "val variableName: String = \"value\"",
+            "var mutableVariable: Int = 0",
             "if (condition) {\n    \n} else {\n    \n}",
             "when (value) {\n    option1 -> {}\n    else -> {}\n}",
             "for (item in collection) {\n    \n}",
             "while (condition) {\n    \n}",
-            "try {\n    \n} catch (e: Exception) {\n    \n} finally {\n    \n}",
+            "try {\n    \n} catch (e: Exception) {\n    \n}",
             "lifecycleScope.launch {\n    \n}",
-            "viewModelScope.launch {\n    \n}",
-            "val liveData = MutableLiveData<Type>()",
-            "val viewModel = ViewModelProvider(this)[ViewModelClass::class.java]",
-            "@Composable\nfun ComposableFunction() {\n    \n}"
+            "val liveData = MutableLiveData<String>()"
         )
     ),
 
@@ -52,72 +45,50 @@ enum class Language(
             "public", "private", "protected", "static", "final", "abstract",
             "class", "interface", "enum", "extends", "implements", "import",
             "package", "void", "int", "long", "double", "float", "boolean",
-            "char", "byte", "short", "String", "Object", "null", "true", "false",
+            "char", "byte", "short", "string", "object", "null", "true", "false",
             "if", "else", "switch", "case", "default", "for", "while", "do",
             "break", "continue", "return", "try", "catch", "finally", "throw",
-            "throws", "new", "this", "super", "instanceof", "synchronized",
-            "volatile", "transient", "native", "strictfp", "assert", "var"
+            "throws", "new", "this", "super", "instanceof"
         ),
         snippets = listOf(
             "public class ClassName {\n    public static void main(String[] args) {\n        \n    }\n}",
             "public class ClassName {\n    \n}",
             "public interface InterfaceName {\n    \n}",
-            "public enum EnumName {\n    OPTION1, OPTION2\n}",
             "public void methodName() {\n    \n}",
             "public int methodName(int param) {\n    return 0;\n}",
             "private String fieldName;",
-            "public ClassName() {\n    \n}",
             "if (condition) {\n    \n} else {\n    \n}",
-            "switch (variable) {\n    case value:\n        break;\n    default:\n        \n}",
             "for (int i = 0; i < length; i++) {\n    \n}",
-            "for (Type item : collection) {\n    \n}",
             "while (condition) {\n    \n}",
-            "do {\n    \n} while (condition);",
-            "try {\n    \n} catch (Exception e) {\n    e.printStackTrace();\n} finally {\n    \n}",
-            "List<Type> list = new ArrayList<>();",
-            "Map<KeyType, ValueType> map = new HashMap<>();",
-            "public static final String CONSTANT = \"value\";",
-            "@Override\npublic String toString() {\n    return super.toString();\n}",
-            "Thread thread = new Thread(() -> {\n    \n});\nthread.start();"
+            "try {\n    \n} catch (Exception e) {\n    \n}",
+            "List<String> list = new ArrayList<>();",
+            "Map<String, Integer> map = new HashMap<>();"
         )
     ),
 
     CPP(
         displayName = "C++",
-        extensions = setOf("cpp", "cc", "cxx", "c++", "hpp", "h", "hxx"),
+        extensions = setOf("cpp", "cc", "cxx", "hpp", "h"),
         keywords = setOf(
             "include", "define", "ifdef", "ifndef", "endif", "pragma",
             "int", "long", "short", "float", "double", "char", "bool", "void",
-            "signed", "unsigned", "const", "static", "extern", "register",
-            "volatile", "inline", "virtual", "explicit", "friend", "typedef",
-            "class", "struct", "union", "enum", "namespace", "using", "template",
-            "typename", "public", "private", "protected", "operator", "this",
-            "new", "delete", "throw", "try", "catch", "nullptr", "NULL",
+            "signed", "unsigned", "const", "static", "extern", "inline",
+            "virtual", "class", "struct", "union", "enum", "namespace", "using",
+            "template", "typename", "public", "private", "protected",
             "if", "else", "switch", "case", "default", "for", "while", "do",
-            "break", "continue", "return", "goto", "sizeof", "alignof",
-            "auto", "decltype", "constexpr", "noexcept", "override", "final"
+            "break", "continue", "return", "try", "catch", "throw", "new", "delete"
         ),
         snippets = listOf(
             "#include <iostream>\nusing namespace std;\n\nint main() {\n    \n    return 0;\n}",
-            "#include <vector>\n#include <string>\n#include <map>\n#include <algorithm>",
-            "class ClassName {\npublic:\n    ClassName();\n    ~ClassName();\nprivate:\n    \n};",
-            "struct StructName {\n    int field1;\n    string field2;\n};",
+            "#include <vector>\n#include <string>\n#include <map>",
+            "class ClassName {\npublic:\n    ClassName();\nprivate:\n    \n};",
             "void functionName(int param) {\n    \n}",
             "int functionName(int param) {\n    return 0;\n}",
-            "template<typename T>\nT functionName(T param) {\n    return param;\n}",
             "vector<int> vec = {1, 2, 3};",
-            "map<string, int> myMap;",
             "for (int i = 0; i < n; i++) {\n    \n}",
-            "for (auto& item : collection) {\n    \n}",
-            "while (condition) {\n    \n}",
             "if (condition) {\n    \n} else {\n    \n}",
-            "switch (variable) {\n    case value:\n        break;\n    default:\n        \n}",
-            "try {\n    \n} catch (const exception& e) {\n    cerr << e.what() << endl;\n}",
-            "int* ptr = new int(0);\ndelete ptr;",
-            "cout << \"Hello\" << endl;",
-            "cin >> variable;",
-            "#define MACRO_NAME value",
-            "const int CONSTANT = 100;"
+            "while (condition) {\n    \n}",
+            "try {\n    \n} catch (const exception& e) {\n    \n}"
         )
     ),
 
@@ -127,9 +98,8 @@ enum class Language(
         keywords = setOf(
             "and", "break", "do", "else", "elseif", "end", "false", "for",
             "function", "if", "in", "local", "nil", "not", "or", "repeat",
-            "return", "then", "true", "until", "while", "goto", "self",
-            "print", "type", "pairs", "ipairs", "tonumber", "tostring",
-            "string", "table", "math", "os", "io", "coroutine", "debug"
+            "return", "then", "true", "until", "while", "print", "type",
+            "pairs", "ipairs", "tonumber", "tostring", "string", "table"
         ),
         snippets = listOf(
             "function functionName(param)\n    \nend",
@@ -138,15 +108,9 @@ enum class Language(
             "if condition then\n    \nelse\n    \nend",
             "for i = 1, n do\n    \nend",
             "for i, v in ipairs(table) do\n    \nend",
-            "for k, v in pairs(table) do\n    \nend",
             "while condition do\n    \nend",
-            "repeat\n    \nuntil condition",
             "local tab = {\n    key = value,\n}",
-            "function ClassName:method()\n    \nend",
-            "print(\"Hello World\")",
-            "local result = pcall(function()\n    \nend)",
-            "coroutine.create(function()\n    \nend)",
-            "require(\"module\")"
+            "print(\"Hello World\")"
         )
     ),
 
@@ -157,50 +121,33 @@ enum class Language(
             "html", "head", "body", "div", "span", "p", "a", "img", "ul", "ol",
             "li", "table", "tr", "td", "th", "form", "input", "button", "select",
             "option", "textarea", "label", "h1", "h2", "h3", "h4", "h5", "h6",
-            "header", "footer", "nav", "section", "article", "aside", "main",
-            "script", "style", "link", "meta", "title", "base", "br", "hr",
-            "iframe", "video", "audio", "source", "canvas", "svg", "path"
+            "header", "footer", "nav", "section", "article", "script", "style",
+            "link", "meta", "title", "iframe", "video", "audio", "canvas", "svg"
         ),
         snippets = listOf(
-            "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n    <meta charset=\"UTF-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n    <title>Document</title>\n</head>\n<body>\n    \n</body>\n</html>",
+            "<!DOCTYPE html>\n<html>\n<head>\n    <meta charset=\"UTF-8\">\n    <title>Document</title>\n</head>\n<body>\n    \n</body>\n</html>",
             "<div class=\"\">\n    \n</div>",
             "<span class=\"\">\n    \n</span>",
             "<a href=\"\">\n    \n</a>",
             "<img src=\"\" alt=\"\" />",
             "<ul>\n    <li></li>\n</ul>",
-            "<ol>\n    <li></li>\n</ol>",
-            "<table>\n    <tr>\n        <td></td>\n    </tr>\n</table>",
             "<form action=\"\" method=\"post\">\n    <input type=\"text\" name=\"\" />\n    <button type=\"submit\">Submit</button>\n</form>",
-            "<input type=\"text\" name=\"\" placeholder=\"\" />",
             "<button type=\"button\">\n    \n</button>",
-            "<select name=\"\">\n    <option value=\"\"></option>\n</select>",
-            "<textarea name=\"\" rows=\"5\"></textarea>",
-            "<label for=\"\"></label>",
-            "<header>\n    \n</header>",
-            "<footer>\n    \n</footer>",
-            "<nav>\n    \n</nav>",
-            "<section>\n    \n</section>",
-            "<article>\n    \n</article>",
             "<script>\n    \n</script>",
-            "<style>\n    \n</style>",
-            "<link rel=\"stylesheet\" href=\"\" />",
-            "<meta name=\"\" content=\"\" />",
-            "<video src=\"\" controls></video>",
-            "<canvas id=\"\" width=\"400\" height=\"400\"></canvas>"
+            "<style>\n    \n</style>"
         )
     ),
 
     PYTHON(
         displayName = "Python",
-        extensions = setOf("py", "pyw", "pyi"),
+        extensions = setOf("py", "pyw"),
         keywords = setOf(
             "def", "class", "import", "from", "as", "return", "yield",
             "if", "elif", "else", "for", "while", "break", "continue",
             "try", "except", "finally", "raise", "assert", "with",
             "pass", "lambda", "global", "nonlocal", "del", "in", "is",
-            "not", "and", "or", "True", "False", "None", "async", "await",
-            "print", "len", "range", "str", "int", "float", "list", "dict",
-            "set", "tuple", "bool", "type", "isinstance", "hasattr", "getattr"
+            "not", "and", "or", "true", "false", "none", "async", "await",
+            "print", "len", "range", "str", "int", "float", "list", "dict"
         ),
         snippets = listOf(
             "def function_name(param):\n    \n    pass",
@@ -212,80 +159,56 @@ enum class Language(
             "for item in collection:\n    \n",
             "for i in range(n):\n    \n",
             "while condition:\n    \n",
-            "try:\n    \nexcept Exception as e:\n    print(e)\nfinally:\n    \n",
+            "try:\n    \nexcept Exception as e:\n    print(e)",
             "with open('file.txt', 'r') as f:\n    \n",
-            "list_comprehension = [x for x in iterable]",
-            "dict_comprehension = {k: v for k, v in items}",
-            "lambda x: x + 1",
-            "@decorator\ndef function():\n    \n",
-            "async def async_function():\n    await something()",
-            "print(\"Hello World\")",
-            "result = map(function, iterable)",
-            "result = filter(function, iterable)",
-            "sorted_list = sorted(iterable, key=lambda x: x)"
+            "print(\"Hello World\")"
         )
     ),
 
     JAVASCRIPT(
         displayName = "JavaScript",
-        extensions = setOf("js", "jsx", "mjs", "cjs"),
+        extensions = setOf("js", "jsx", "mjs"),
         keywords = setOf(
             "var", "let", "const", "function", "return", "if", "else", "switch",
             "case", "default", "for", "while", "do", "break", "continue",
             "try", "catch", "finally", "throw", "new", "this", "class", "extends",
             "super", "import", "export", "from", "as", "async", "await", "yield",
             "typeof", "instanceof", "in", "of", "null", "undefined", "true", "false",
-            "console", "log", "error", "warn", "info", "document", "window", "Promise"
+            "console", "log", "document", "window", "promise"
         ),
         snippets = listOf(
             "function functionName(param) {\n    \n}",
             "const functionName = (param) => {\n    \n}",
             "const variableName = value;",
-            "let mutableVariable = value;",
             "class ClassName {\n    constructor() {\n        \n    }\n}",
             "if (condition) {\n    \n} else {\n    \n}",
-            "switch (variable) {\n    case value:\n        break;\n    default:\n        \n}",
             "for (let i = 0; i < length; i++) {\n    \n}",
-            "for (const item of array) {\n    \n}",
-            "for (const key in object) {\n    \n}",
             "while (condition) {\n    \n}",
             "try {\n    \n} catch (error) {\n    console.error(error);\n}",
             "const promise = new Promise((resolve, reject) => {\n    \n});",
             "async function asyncFunction() {\n    await promise;\n}",
-            "const array = [1, 2, 3];",
-            "const object = { key: value };",
             "console.log('Hello World');",
-            "document.getElementById('id');",
-            "document.querySelector('.class');",
-            "array.map(item => item.property)",
-            "array.filter(item => condition)",
-            "array.reduce((acc, item) => acc + item, 0)"
+            "document.getElementById('id');"
         )
     ),
 
     CSS(
         displayName = "CSS",
-        extensions = setOf("css", "scss", "sass", "less"),
+        extensions = setOf("css", "scss", "sass"),
         keywords = setOf(
-            "color", "background", "background-color", "background-image",
-            "margin", "padding", "border", "width", "height", "font", "font-size",
-            "font-weight", "font-family", "text-align", "text-decoration",
-            "display", "position", "top", "right", "bottom", "left", "float",
-            "clear", "overflow", "visibility", "opacity", "z-index", "flex",
-            "grid", "align-items", "justify-content", "flex-direction", "gap",
-            "transform", "transition", "animation", "keyframes", "media", "import"
+            "color", "background", "margin", "padding", "border", "width", "height",
+            "font", "display", "position", "top", "right", "bottom", "left",
+            "flex", "grid", "align-items", "justify-content", "transform",
+            "transition", "animation", "media", "import"
         ),
         snippets = listOf(
             "* {\n    margin: 0;\n    padding: 0;\n    box-sizing: border-box;\n}",
             ".className {\n    \n}",
             "#idName {\n    \n}",
-            "body {\n    font-family: Arial, sans-serif;\n    \n}",
-            "div {\n    display: flex;\n    align-items: center;\n    justify-content: center;\n}",
-            ".container {\n    max-width: 1200px;\n    margin: 0 auto;\n    padding: 0 20px;\n}",
+            "body {\n    font-family: Arial, sans-serif;\n}",
+            ".container {\n    max-width: 1200px;\n    margin: 0 auto;\n}",
             "@media (max-width: 768px) {\n    \n}",
-            "@keyframes animationName {\n    0% { }\n    100% { }\n}",
-            ".button {\n    padding: 10px 20px;\n    background-color: #007bff;\n    color: white;\n    border: none;\n    cursor: pointer;\n}",
-            ".card {\n    border: 1px solid #ddd;\n    border-radius: 8px;\n    padding: 16px;\n    box-shadow: 0 2px 4px rgba(0,0,0,0.1);\n}"
+            ".button {\n    padding: 10px 20px;\n    background-color: #007bff;\n    color: white;\n}"
         )
     ),
 
@@ -294,46 +217,38 @@ enum class Language(
         extensions = setOf("json"),
         keywords = setOf("true", "false", "null"),
         snippets = listOf(
-            "{\n    \"key\": \"value\",\n    \"number\": 0,\n    \"boolean\": true,\n    \"null\": null,\n    \"array\": [],\n    \"object\": {}\n}",
-            "[\n    {\n        \"id\": 1,\n        \"name\": \"\"\n    }\n]",
-            "{\n    \"name\": \"\",\n    \"version\": \"1.0.0\",\n    \"description\": \"\"\n}"
+            "{\n    \"key\": \"value\",\n    \"number\": 0,\n    \"array\": [],\n    \"object\": {}\n}",
+            "[\n    {\n        \"id\": 1,\n        \"name\": \"\"\n    }\n]"
         )
     ),
 
     XML(
         displayName = "XML",
-        extensions = setOf("xml", "xsd", "xslt"),
-        keywords = setOf("xml", "version", "encoding", "DOCTYPE", "CDATA"),
+        extensions = setOf("xml"),
+        keywords = setOf("xml", "version", "encoding"),
         snippets = listOf(
             "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<root>\n    \n</root>",
-            "<element attribute=\"value\">\n    \n</element>",
-            "<!-- Comment -->"
+            "<element attribute=\"value\">\n    \n</element>"
         )
     ),
 
     SQL(
         displayName = "SQL",
-        extensions = setOf("sql", "sqlite", "db"),
+        extensions = setOf("sql", "sqlite"),
         keywords = setOf(
-            "SELECT", "FROM", "WHERE", "INSERT", "INTO", "VALUES", "UPDATE", "SET",
-            "DELETE", "CREATE", "TABLE", "DROP", "ALTER", "ADD", "COLUMN", "INDEX",
-            "PRIMARY", "KEY", "FOREIGN", "REFERENCES", "UNIQUE", "NOT", "NULL",
-            "DEFAULT", "AUTO_INCREMENT", "JOIN", "LEFT", "RIGHT", "INNER", "OUTER",
-            "ON", "GROUP", "BY", "ORDER", "ASC", "DESC", "LIMIT", "OFFSET",
-            "HAVING", "DISTINCT", "COUNT", "SUM", "AVG", "MIN", "MAX", "LIKE",
-            "IN", "BETWEEN", "EXISTS", "UNION", "ALL", "AS", "CASE", "WHEN", "THEN", "END"
+            "select", "from", "where", "insert", "into", "values", "update", "set",
+            "delete", "create", "table", "drop", "alter", "add", "column", "index",
+            "primary", "key", "foreign", "references", "unique", "not", "null",
+            "join", "left", "right", "inner", "outer", "on", "group", "by",
+            "order", "asc", "desc", "limit", "having", "distinct", "count", "sum", "avg"
         ),
         snippets = listOf(
             "SELECT * FROM table_name WHERE condition;",
-            "SELECT column1, column2 FROM table_name;",
             "INSERT INTO table_name (column1, column2) VALUES (value1, value2);",
             "UPDATE table_name SET column1 = value1 WHERE condition;",
             "DELETE FROM table_name WHERE condition;",
-            "CREATE TABLE table_name (\n    id INT PRIMARY KEY AUTO_INCREMENT,\n    name VARCHAR(100),\n    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP\n);",
-            "DROP TABLE table_name;",
-            "SELECT * FROM table1 JOIN table2 ON table1.id = table2.id;",
-            "SELECT COUNT(*) FROM table_name;",
-            "SELECT * FROM table_name ORDER BY column_name DESC LIMIT 10;"
+            "CREATE TABLE table_name (\n    id INTEGER PRIMARY KEY,\n    name TEXT\n);",
+            "SELECT * FROM table1 JOIN table2 ON table1.id = table2.id;"
         )
     ),
 
@@ -346,48 +261,34 @@ enum class Language(
             "**bold text**",
             "*italic text*",
             "`inline code`",
-            "```language\ncode block\n```",
             "- List item 1\n- List item 2",
-            "1. Numbered item 1\n2. Numbered item 2",
             "[link text](url)",
-            "![alt text](image-url)",
-            "> blockquote",
-            "---\n(horizontal rule)",
-            "| Column 1 | Column 2 |\n|----------|----------|\n| Cell 1   | Cell 2   |"
+            "![alt text](image-url)"
         )
     ),
 
     SHELL(
-        displayName = "Shell/Bash",
-        extensions = setOf("sh", "bash", "zsh", "fish"),
+        displayName = "Shell",
+        extensions = setOf("sh", "bash", "zsh"),
         keywords = setOf(
             "if", "then", "else", "elif", "fi", "for", "do", "done", "while",
             "until", "case", "esac", "in", "function", "return", "exit",
-            "echo", "print", "read", "export", "source", "cd", "pwd", "ls",
-            "cat", "grep", "sed", "awk", "find", "xargs", "pipe", "redirect"
+            "echo", "read", "export", "source", "cd", "pwd", "ls", "cat", "grep"
         ),
         snippets = listOf(
             "#!/bin/bash",
             "if [ condition ]; then\n    \nfi",
-            "if [ condition ]; then\n    \nelse\n    \nfi",
             "for i in {1..10}; do\n    \ndone",
-            "for file in *.txt; do\n    \ndone",
             "while [ condition ]; do\n    \ndone",
-            "case $variable in\n    pattern1)\n        \n        ;;\n    *)\n        \n        ;;\nesac",
             "function myFunction() {\n    \n}",
-            "myFunction() {\n    \n}",
             "echo \"Hello World\"",
-            "read -p \"Prompt: \" variable",
-            "export VARIABLE=value",
-            "command1 | command2",
-            "command > output.txt",
-            "command >> output.txt"
+            "read -p \"Prompt: \" variable"
         )
     ),
 
     PLAIN_TEXT(
         displayName = "Plain Text",
-        extensions = setOf("txt", "log", "cfg", "conf", "ini"),
+        extensions = setOf("txt", "log", "cfg", "conf"),
         keywords = setOf(),
         snippets = listOf()
     );
