@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">CodeSnap</string>
+    <string name="tab_files">Files</string>
+    <string name="tab_search">Search</string>
+    <string name="tab_editor">Editor</string>
+    <string name="open_folder">Open Folder</string>
+    <string name="open_zip">Open ZIP</string>
+    <string name="export_zip">Export ZIP</string>
+    <string name="no_project">No project open.
+Tap Open Folder or Open ZIP to start.</string>
+    <string name="search_hint">Paste or type code snippet to search...</string>
+    <string name="replace_hint">Replacement code...</string>
+    <string name="search_placeholder">Open a project first, then search for any code snippet.</string>
+    <string name="editor_no_file">No file open.
+Tap a file in the Files tab to edit it.</string>
+    <string name="unsaved_changes">Unsaved changes</string>
+    <string name="saved">Saved!</string>
+</resources>
