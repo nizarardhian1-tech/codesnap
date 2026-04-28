@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@color/bg_card"
+    android:padding="16dp">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Find &amp; Replace"
+        android:textColor="@color/accent"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:paddingBottom="12dp" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Find:"
+        android:textColor="@color/text_secondary"
+        android:textSize="12sp"
+        android:paddingBottom="4dp" />
+
+    <EditText
+        android:id="@+id/etFindText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Text to find..."
+        android:hintTextColor="@color/text_secondary"
+        android:textColor="@color/text_primary"
+        android:textSize="13sp"
+        android:fontFamily="monospace"
+        android:background="@color/bg_input"
+        android:padding="10dp"
+        android:inputType="textMultiLine|textNoSuggestions"
+        android:minLines="2"
+        android:maxLines="6"
+        android:gravity="top|start" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Replace with:"
+        android:textColor="@color/text_secondary"
+        android:textSize="12sp"
+        android:paddingTop="12dp"
+        android:paddingBottom="4dp" />
+
+    <EditText
+        android:id="@+id/etReplaceText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="@string/replace_hint"
+        android:hintTextColor="@color/text_secondary"
+        android:textColor="@color/text_primary"
+        android:textSize="13sp"
+        android:fontFamily="monospace"
+        android:background="@color/bg_input"
+        android:padding="10dp"
+        android:inputType="textMultiLine|textNoSuggestions"
+        android:minLines="2"
+        android:maxLines="6"
+        android:gravity="top|start" />
+
+    <TextView
+        android:id="@+id/tvReplaceInfo"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="@color/text_secondary"
+        android:textSize="12sp"
+        android:paddingTop="8dp"
+        android:visibility="gone" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:paddingTop="12dp">
+
+        <Button
+            android:id="@+id/btnReplaceFirst"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginEnd="6dp"
+            android:text="Replace First"
+            android:textColor="@color/accent" />
+
+        <Button
+            android:id="@+id/btnReplaceAll"
+            style="@style/Widget.Material3.Button"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Replace All"
+            android:backgroundTint="@color/accent" />
+
+    </LinearLayout>
+
+</LinearLayout>
