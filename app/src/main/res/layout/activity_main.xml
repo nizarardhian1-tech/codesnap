@@ -26,7 +26,6 @@
         android:layout_height="wrap_content"
         android:background="@color/bg_secondary"
         app:itemIconTint="@color/nav_unselected"
-        app:itemActiveIndicatorColor="@color/bg_card"
         app:itemTextColor="@color/nav_unselected"
         app:menu="@menu/bottom_nav_menu" />
 

@@ -59,7 +59,7 @@
             android:layout_height="36dp"
             android:layout_weight="1"
             android:hint="Find in file..."
-            android:hintTextColor="@color/text_secondary"
+            android:textColorHint="@color/text_secondary"
             android:textColor="@color/text_primary"
             android:textSize="13sp"
             android:fontFamily="monospace"
