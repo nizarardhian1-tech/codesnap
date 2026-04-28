@@ -29,33 +29,37 @@ object FileUtils {
 
     // ── DocumentFile (SAF) operations ──────────────────────────────────────
 
-    fun readDocumentFile(uri: Uri, context: Context, encoding: String = "UTF-8"): String? = try {
-        val charset = try {
-            Charset.forName(encoding)
+    fun readDocumentFile(uri: Uri, context: Context, encoding: String = "UTF-8"): String? {
+        return try {
+            val charset = try {
+                Charset.forName(encoding)
+            } catch (e: Exception) {
+                Log.w(TAG, "Invalid encoding '$encoding', falling back to UTF-8", e)
+                Charset.forName("UTF-8")
+            }
+            context.contentResolver.openInputStream(uri)?.bufferedReader(charset)?.use { it.readText() }
         } catch (e: Exception) {
-            Log.w(TAG, "Invalid encoding '$encoding', falling back to UTF-8", e)
-            Charset.forName("UTF-8")
+            Log.e(TAG, "Failed to read document file: $uri", e)
+            null
         }
-        context.contentResolver.openInputStream(uri)?.bufferedReader(charset)?.use { it.readText() }
-    } catch (e: Exception) {
-        Log.e(TAG, "Failed to read document file: $uri", e)
-        null
     }
 
-    fun writeDocumentFile(uri: Uri, content: String, context: Context, encoding: String = "UTF-8"): Boolean = try {
-        val charset = try {
-            Charset.forName(encoding)
+    fun writeDocumentFile(uri: Uri, content: String, context: Context, encoding: String = "UTF-8"): Boolean {
+        return try {
+            val charset = try {
+                Charset.forName(encoding)
+            } catch (e: Exception) {
+                Log.w(TAG, "Invalid encoding '$encoding', falling back to UTF-8", e)
+                Charset.forName("UTF-8")
+            }
+            context.contentResolver.openOutputStream(uri, "wt")?.bufferedWriter(charset)?.use {
+                it.write(content)
+            }
+            true
         } catch (e: Exception) {
-            Log.w(TAG, "Invalid encoding '$encoding', falling back to UTF-8", e)
-            Charset.forName("UTF-8")
+            Log.e(TAG, "Failed to write document file: $uri", e)
+            false
         }
-        context.contentResolver.openOutputStream(uri, "wt")?.bufferedWriter(charset)?.use {
-            it.write(content)
-        }
-        true
-    } catch (e: Exception) {
-        Log.e(TAG, "Failed to write document file: $uri", e)
-        false
     }
 
     fun traverseDocumentFile(
@@ -87,33 +91,37 @@ object FileUtils {
 
     // ── Local File operations ───────────────────────────────────────────────
 
-    fun readLocalFile(uri: Uri, encoding: String = "UTF-8"): String? = try {
-        val path = uri.path ?: return null
-        val charset = try {
-            Charset.forName(encoding)
+    fun readLocalFile(uri: Uri, encoding: String = "UTF-8"): String? {
+        return try {
+            val path = uri.path ?: return null
+            val charset = try {
+                Charset.forName(encoding)
+            } catch (e: Exception) {
+                Log.w(TAG, "Invalid encoding '$encoding', falling back to UTF-8", e)
+                Charset.forName("UTF-8")
+            }
+            File(path).readText(charset)
         } catch (e: Exception) {
-            Log.w(TAG, "Invalid encoding '$encoding', falling back to UTF-8", e)
-            Charset.forName("UTF-8")
+            Log.e(TAG, "Failed to read local file: $uri", e)
+            null
         }
-        File(path).readText(charset)
-    } catch (e: Exception) {
-        Log.e(TAG, "Failed to read local file: $uri", e)
-        null
     }
 
-    fun writeLocalFile(uri: Uri, content: String, encoding: String = "UTF-8"): Boolean = try {
-        val path = uri.path ?: return false
-        val charset = try {
-            Charset.forName(encoding)
+    fun writeLocalFile(uri: Uri, content: String, encoding: String = "UTF-8"): Boolean {
+        return try {
+            val path = uri.path ?: return false
+            val charset = try {
+                Charset.forName(encoding)
+            } catch (e: Exception) {
+                Log.w(TAG, "Invalid encoding '$encoding', falling back to UTF-8", e)
+                Charset.forName("UTF-8")
+            }
+            File(path).writeText(content, charset)
+            true
         } catch (e: Exception) {
-            Log.w(TAG, "Invalid encoding '$encoding', falling back to UTF-8", e)
-            Charset.forName("UTF-8")
+            Log.e(TAG, "Failed to write local file: $uri", e)
+            false
         }
-        File(path).writeText(content, charset)
-        true
-    } catch (e: Exception) {
-        Log.e(TAG, "Failed to write local file: $uri", e)
-        false
     }
 
     fun traverseLocalDir(dir: File, depth: Int = 0, relativePath: String = ""): List<FileNode> {
@@ -163,39 +171,43 @@ object FileUtils {
 
     // ── ZIP operations ─────────────────────────────────────────────────────
 
-    fun extractZip(zipUri: Uri, destDir: File, context: Context): Boolean = try {
-        context.contentResolver.openInputStream(zipUri)?.use { input ->
-            ZipInputStream(input).use { zis ->
-                var entry = zis.nextEntry
-                while (entry != null) {
-                    val destFile = File(destDir, entry.name)
-                    if (entry.isDirectory) {
-                        destFile.mkdirs()
-                    } else {
-                        destFile.parentFile?.mkdirs()
-                        FileOutputStream(destFile).use { fos -> zis.copyTo(fos) }
+    fun extractZip(zipUri: Uri, destDir: File, context: Context): Boolean {
+        return try {
+            context.contentResolver.openInputStream(zipUri)?.use { input ->
+                ZipInputStream(input).use { zis ->
+                    var entry = zis.nextEntry
+                    while (entry != null) {
+                        val destFile = File(destDir, entry.name)
+                        if (entry.isDirectory) {
+                            destFile.mkdirs()
+                        } else {
+                            destFile.parentFile?.mkdirs()
+                            FileOutputStream(destFile).use { fos -> zis.copyTo(fos) }
+                        }
+                        zis.closeEntry()
+                        entry = zis.nextEntry
                     }
-                    zis.closeEntry()
-                    entry = zis.nextEntry
                 }
             }
+            true
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to extract ZIP: $zipUri", e)
+            false
         }
-        true
-    } catch (e: Exception) {
-        Log.e(TAG, "Failed to extract ZIP: $zipUri", e)
-        false
     }
 
-    fun zipLocalDirectory(sourceDir: File, destUri: Uri, context: Context): Boolean = try {
-        context.contentResolver.openOutputStream(destUri)?.use { out ->
-            ZipOutputStream(out).use { zos ->
-                addToZip(sourceDir, sourceDir.name, zos)
+    fun zipLocalDirectory(sourceDir: File, destUri: Uri, context: Context): Boolean {
+        return try {
+            context.contentResolver.openOutputStream(destUri)?.use { out ->
+                ZipOutputStream(out).use { zos ->
+                    addToZip(sourceDir, sourceDir.name, zos)
+                }
             }
+            true
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to zip local directory: $sourceDir", e)
+            false
         }
-        true
-    } catch (e: Exception) {
-        Log.e(TAG, "Failed to zip local directory: $sourceDir", e)
-        false
     }
 
     private fun addToZip(file: File, zipPath: String, zos: ZipOutputStream) {
@@ -208,16 +220,18 @@ object FileUtils {
         }
     }
 
-    fun zipDocumentFolder(root: DocumentFile, destUri: Uri, context: Context): Boolean = try {
-        context.contentResolver.openOutputStream(destUri)?.use { out ->
-            ZipOutputStream(out).use { zos ->
-                addDocumentToZip(root, root.name ?: "project", zos, context)
+    fun zipDocumentFolder(root: DocumentFile, destUri: Uri, context: Context): Boolean {
+        return try {
+            context.contentResolver.openOutputStream(destUri)?.use { out ->
+                ZipOutputStream(out).use { zos ->
+                    addDocumentToZip(root, root.name ?: "project", zos, context)
+                }
             }
+            true
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to zip document folder: $root", e)
+            false
         }
-        true
-    } catch (e: Exception) {
-        Log.e(TAG, "Failed to zip document folder: $root", e)
-        false
     }
 
     private fun addDocumentToZip(doc: DocumentFile, zipPath: String, zos: ZipOutputStream, ctx: Context) {
@@ -231,10 +245,21 @@ object FileUtils {
     }
 
     // ── Unified read/write (handles both SAF and local) ────────────────────
+    // FIX: Gunakan block body {...} bukan expression body (=)
 
-    fun readFile(uri: Uri, isLocal: Boolean, context: Context, encoding: String = "UTF-8"): String? =
-        if (isLocal) readLocalFile(uri, encoding) else readDocumentFile(uri, context, encoding)
+    fun readFile(uri: Uri, isLocal: Boolean, context: Context, encoding: String = "UTF-8"): String? {
+        return if (isLocal) {
+            readLocalFile(uri, encoding)
+        } else {
+            readDocumentFile(uri, context, encoding)
+        }
+    }
 
-    fun writeFile(uri: Uri, content: String, isLocal: Boolean, context: Context, encoding: String = "UTF-8"): Boolean =
-        if (isLocal) writeLocalFile(uri, content, encoding) else writeDocumentFile(uri, content, context, encoding)
+    fun writeFile(uri: Uri, content: String, isLocal: Boolean, context: Context, encoding: String = "UTF-8"): Boolean {
+        return if (isLocal) {
+            writeLocalFile(uri, content, encoding)
+        } else {
+            writeDocumentFile(uri, content, context, encoding)
+        }
+    }
 }
