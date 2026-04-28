@@ -62,17 +62,22 @@ class EditorFragment : Fragment() {
             override fun onTextChanged(s: CharSequence?, st: Int, b: Int, c: Int) {}
             override fun afterTextChanged(s: Editable?) {
                 if (isApplyingUndo || isApplyingHighlight) return
+                
                 val text = s.toString()
                 isModified = text != originalContent
                 updateModifiedDot()
                 updateLineInfo()
-                // Debounce: snapshot every 1s of idle, highlight every 300ms
+
+                // Debounce: Hapus antrean lama, buat antrean baru
                 handler.removeCallbacks(snapshotRunnable)
                 handler.removeCallbacks(highlightRunnable)
+                
                 handler.postDelayed(snapshotRunnable, 1000)
-                handler.postDelayed(highlightRunnable, 400)
+                // Gunakan 500ms agar lebih stabil saat mengetik cepat
+                handler.postDelayed(highlightRunnable, 500)
             }
         })
+
 
         b.btnBack.setOnClickListener { findNavController().popBackStack() }
         b.btnSave.setOnClickListener { saveFile() }
@@ -139,16 +144,22 @@ class EditorFragment : Fragment() {
 
     private fun applyHighlight() {
         if (currentUri == null || isApplyingHighlight) return
+
         val cursor = b.editCode.selectionStart
-        val text = b.editCode.text.toString()
+        val editable = b.editCode.text // Ambil Editable langsung, bukan toString()
+
         lifecycleScope.launch {
-            val highlighted = withContext(Dispatchers.Default) {
-                SyntaxHighlighter.highlight(text, currentExt)
-            }
             isApplyingHighlight = true
-            b.editCode.setText(highlighted)
+            
+            // Lakukan pemrosesan berat di Default Dispatcher (Background)
+            withContext(Dispatchers.Default) {
+                SyntaxHighlighter.applyHighlighting(editable)
+            }
+            
+            // Kembalikan posisi kursor jika berubah
             val safePos = cursor.coerceIn(0, b.editCode.text.length)
             b.editCode.setSelection(safePos)
+            
             isApplyingHighlight = false
         }
     }
