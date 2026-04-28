@@ -5,6 +5,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.text.*
 import android.text.style.BackgroundColorSpan
+import android.util.Log
 import android.view.*
 import android.view.inputmethod.EditorInfo
 import android.widget.Toast
@@ -29,8 +30,12 @@ class EditorFragment : Fragment() {
     private var isModified = false
     private var originalContent = ""
 
-    // Simple undo stack (stores states before programmatic replacements)
-    private val undoStack = ArrayDeque<String>()
+    // MAX FILE SIZE: 5MB untuk mencegah OOM
+    private val MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024
+
+    // Undo stack dengan Command Pattern untuk efisiensi memory
+    private data class EditState(val content: String, val selectionStart: Int, val selectionEnd: Int)
+    private val undoStack = ArrayDeque<EditState>()
     private var ignoreTextChange = false
 
     // Find-in-file state
@@ -104,7 +109,20 @@ class EditorFragment : Fragment() {
         lifecycleScope.launch {
             val content = withContext(Dispatchers.IO) {
                 FileUtils.readFile(req.uri, req.isLocal, requireContext().applicationContext)
-            } ?: ""
+            }
+
+            if (content == null) {
+                toast("Failed to load file")
+                Log.e("EditorFragment", "Failed to read file: ${req.uri}")
+                return@launch
+            }
+
+            // Check file size limit
+            if (content.length > MAX_FILE_SIZE_BYTES) {
+                toast("File too large (>5MB)")
+                Log.w("EditorFragment", "File exceeds size limit: ${content.length} bytes")
+                return@launch
+            }
 
             originalContent = content
             ignoreTextChange = true
@@ -140,6 +158,7 @@ class EditorFragment : Fragment() {
                 toast("✓ Saved")
             } else {
                 toast("Save failed!")
+                Log.e("EditorFragment", "Failed to write file: $uri")
             }
         }
     }
@@ -148,9 +167,10 @@ class EditorFragment : Fragment() {
         if (undoStack.isNotEmpty()) {
             val prev = undoStack.removeLast()
             ignoreTextChange = true
-            b.editCode.setText(prev)
+            b.editCode.setText(prev.content)
+            b.editCode.setSelection(prev.selectionStart, prev.selectionEnd)
             ignoreTextChange = false
-            isModified = prev != originalContent
+            isModified = prev.content != originalContent
             updateModifiedIndicator()
             b.btnUndo.isEnabled = undoStack.isNotEmpty()
             toast("Undone")
@@ -161,7 +181,11 @@ class EditorFragment : Fragment() {
 
     private fun pushUndo() {
         val current = b.editCode.text.toString()
-        undoStack.addLast(current)
+        undoStack.addLast(EditState(
+            content = current,
+            selectionStart = b.editCode.selectionStart,
+            selectionEnd = b.editCode.selectionEnd
+        ))
         if (undoStack.size > 30) undoStack.removeFirst()
         b.btnUndo.isEnabled = true
     }

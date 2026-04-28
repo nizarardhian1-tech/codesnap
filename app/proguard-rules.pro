@@ -1,48 +1,38 @@
 # ProGuard rules untuk code.editor.mon
 
-# Keep all classes in this package
--keep class code.editor.mon.** { *; }
+# ── Keep classes that are accessed via reflection ───────────────────────────
+
+# ViewModel & LiveData
+-keep class * extends androidx.lifecycle.ViewModel { *; }
+-keepclassmembers class * extends androidx.lifecycle.ViewModel { <init>(...); }
+-keepclassmembers class * extends androidx.lifecycle.LiveData { *; }
+
+# Fragment
+-keepclassmembers class * extends androidx.fragment.app.Fragment { <init>(); }
 
 # Kotlin
 -keep class kotlin.** { *; }
 -keep class kotlin.Metadata { *; }
 -dontwarn kotlin.**
 -keepclassmembers class **$WhenMappings { <fields>; }
--keepclassmembers class kotlin.Metadata {
-    public <methods>;
-}
 
 # Coroutines
 -keepnames class kotlinx.coroutines.internal.MainDispatcherFactory {}
 -keepnames class kotlinx.coroutines.CoroutineExceptionHandler {}
 -dontwarn kotlinx.coroutines.**
 
-# Retrofit
--keepattributes Signature
--keepattributes Exceptions
--keep class retrofit2.** { *; }
--keepattributes RuntimeVisibleAnnotations
--keepattributes RuntimeInvisibleAnnotations
--dontwarn retrofit2.**
+# DocumentFile (SAF)
+-keep class androidx.documentfile.provider.** { *; }
 
-# Gson
--keep class com.google.gson.** { *; }
--keepattributes *Annotation*
--keep class * implements com.google.gson.TypeAdapterFactory
--keep class * implements com.google.gson.JsonSerializer
--keep class * implements com.google.gson.JsonDeserializer
+# Navigation Component
+-keep class androidx.navigation.** { *; }
+-dontwarn androidx.navigation.**
 
-# Room
--keep class * extends androidx.room.RoomDatabase
--keep @androidx.room.Entity class *
--keep @androidx.room.Dao interface *
--dontwarn androidx.room.**
+# Material Components
+-keep class com.google.android.material.** { *; }
 
-# Glide
--keep public class * implements com.bumptech.glide.module.GlideModule
--keep class * extends com.bumptech.glide.module.AppGlideModule { <init>(...); }
--dontwarn com.bumptech.glide.**
+# ── Remove unused resources (shrinkResources sudah di build.gradle) ─────────
 
-# ViewModel / LiveData
--keep class * extends androidx.lifecycle.ViewModel { *; }
--keepclassmembers class * extends androidx.lifecycle.ViewModel { <init>(...); }
+# Optimasi: biarkan ProGuard melakukan obfuscation normal
+# Jangan keep seluruh package kecuali benar-benar diperlukan
+

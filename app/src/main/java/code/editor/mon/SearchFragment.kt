@@ -2,6 +2,7 @@ package code.editor.mon
 
 import android.app.AlertDialog
 import android.os.Bundle
+import android.util.Log
 import android.view.*
 import android.view.inputmethod.EditorInfo
 import android.widget.Toast
@@ -13,6 +14,8 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import code.editor.mon.databinding.DialogReplaceBinding
 import code.editor.mon.databinding.FragmentSearchBinding
 import kotlinx.coroutines.*
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 
 class SearchFragment : Fragment() {
 
@@ -22,6 +25,8 @@ class SearchFragment : Fragment() {
     private val results = mutableListOf<SearchResult>()
     private lateinit var adapter: SearchResultAdapter
     private var searchJob: Job? = null
+    private var filesProcessed = 0
+    private var totalFiles = 0
 
     override fun onCreateView(i: LayoutInflater, c: ViewGroup?, s: Bundle?) =
         FragmentSearchBinding.inflate(i, c, false).also { _b = it }.root
@@ -56,21 +61,43 @@ class SearchFragment : Fragment() {
         b.tvSearchPlaceholder.visibility = View.GONE
         b.rvResults.visibility = View.GONE
         b.tvSearchStatus.visibility = View.GONE
+        filesProcessed = 0
 
         val caseSensitive = b.cbCaseSensitive.isChecked
         val useRegex = b.cbRegex.isChecked
-        val allFiles = ProjectManager.allFiles
+        val allFiles = ProjectManager.allFiles.filter { FileUtils.isTextFile(it.name) }
         val isLocal = ProjectManager.isLocalProject
         val ctx = requireContext().applicationContext
+        totalFiles = allFiles.size
 
-        searchJob = lifecycleScope.launch(Dispatchers.IO) {
+        searchJob = lifecycleScope.launch(Dispatchers.Main) {
             val found = mutableListOf<SearchResult>()
-            for (fileNode in allFiles) {
-                if (!isActive) break
-                if (!FileUtils.isTextFile(fileNode.name)) continue
-                val content = FileUtils.readFile(fileNode.uri, isLocal, ctx) ?: continue
-                val lineResults = searchInContent(content, query, fileNode, caseSensitive, useRegex)
-                found.addAll(lineResults)
+            
+            // Parallel processing untuk performa lebih baik
+            allFiles.chunked(10).forEach { fileBatch ->
+                if (!isActive) return@launch
+                
+                withContext(Dispatchers.Default) {
+                    fileBatch.forEach { fileNode ->
+                        if (!isActive) return@forEach
+                        try {
+                            val content = FileUtils.readFile(fileNode.uri, isLocal, ctx) ?: return@forEach
+                            val lineResults = searchInContent(content, query, fileNode, caseSensitive, useRegex)
+                            synchronized(found) {
+                                found.addAll(lineResults)
+                            }
+                        } catch (e: Exception) {
+                            Log.e("SearchFragment", "Error searching in ${fileNode.name}", e)
+                        }
+                        filesProcessed++
+                    }
+                }
+                
+                // Update progress di main thread
+                withContext(Dispatchers.Main) {
+                    b.tvSearchStatus.text = "Processing: $filesProcessed/$totalFiles files..."
+                    b.tvSearchStatus.visibility = View.VISIBLE
+                }
             }
 
             withContext(Dispatchers.Main) {
@@ -101,7 +128,10 @@ class SearchFragment : Fragment() {
         val regex = if (useRegex) {
             try {
                 Regex(query, if (caseSensitive) setOf() else setOf(RegexOption.IGNORE_CASE))
-            } catch (e: Exception) { return emptyList() }
+            } catch (e: Exception) {
+                Log.w("SearchFragment", "Invalid regex: $query", e)
+                return emptyList()
+            }
         } else null
 
         for ((index, line) in lines.withIndex()) {
@@ -177,16 +207,24 @@ class SearchFragment : Fragment() {
             if (find.isEmpty()) { toast("Enter text to find"); return@setOnClickListener }
             val ctx = requireContext().applicationContext
             lifecycleScope.launch(Dispatchers.IO) {
-                val content = FileUtils.readFile(result.uri, result.isLocal, ctx) ?: return@launch
-                val count = countOccurrences(find, content, b.cbCaseSensitive.isChecked)
-                val newContent = if (b.cbCaseSensitive.isChecked)
-                    content.replaceFirst(find, replace)
-                else
-                    content.replaceFirst(Regex(Regex.escape(find), RegexOption.IGNORE_CASE), replace)
-                val ok = FileUtils.writeFile(result.uri, newContent, result.isLocal, ctx)
-                withContext(Dispatchers.Main) {
-                    toast(if (ok) "✓ Replaced 1 occurrence" else "Write failed")
-                    dialog.dismiss()
+                try {
+                    val content = FileUtils.readFile(result.uri, result.isLocal, ctx) ?: return@launch
+                    val count = countOccurrences(find, content, b.cbCaseSensitive.isChecked)
+                    val newContent = if (b.cbCaseSensitive.isChecked)
+                        content.replaceFirst(find, replace)
+                    else
+                        content.replaceFirst(Regex(Regex.escape(find), RegexOption.IGNORE_CASE), replace)
+                    val ok = FileUtils.writeFile(result.uri, newContent, result.isLocal, ctx)
+                    withContext(Dispatchers.Main) {
+                        toast(if (ok) "✓ Replaced 1 occurrence" else "Write failed")
+                        dialog.dismiss()
+                    }
+                } catch (e: Exception) {
+                    Log.e("SearchFragment", "Replace failed", e)
+                    withContext(Dispatchers.Main) {
+                        toast("Replace failed: ${e.message}")
+                        dialog.dismiss()
+                    }
                 }
             }
         }
@@ -197,17 +235,25 @@ class SearchFragment : Fragment() {
             if (find.isEmpty()) { toast("Enter text to find"); return@setOnClickListener }
             val ctx = requireContext().applicationContext
             lifecycleScope.launch(Dispatchers.IO) {
-                val content = FileUtils.readFile(result.uri, result.isLocal, ctx) ?: return@launch
-                val count = countOccurrences(find, content, b.cbCaseSensitive.isChecked)
-                val newContent = if (b.cbCaseSensitive.isChecked)
-                    content.replace(find, replace)
-                else
-                    content.replace(Regex(Regex.escape(find), RegexOption.IGNORE_CASE), replace)
-                val ok = FileUtils.writeFile(result.uri, newContent, result.isLocal, ctx)
-                withContext(Dispatchers.Main) {
-                    toast(if (ok) "✓ Replaced $count occurrence(s)" else "Write failed")
-                    if (ok) doSearch() // refresh search results
-                    dialog.dismiss()
+                try {
+                    val content = FileUtils.readFile(result.uri, result.isLocal, ctx) ?: return@launch
+                    val count = countOccurrences(find, content, b.cbCaseSensitive.isChecked)
+                    val newContent = if (b.cbCaseSensitive.isChecked)
+                        content.replace(find, replace)
+                    else
+                        content.replace(Regex(Regex.escape(find), RegexOption.IGNORE_CASE), replace)
+                    val ok = FileUtils.writeFile(result.uri, newContent, result.isLocal, ctx)
+                    withContext(Dispatchers.Main) {
+                        toast(if (ok) "✓ Replaced $count occurrence(s)" else "Write failed")
+                        if (ok) doSearch() // refresh search results
+                        dialog.dismiss()
+                    }
+                } catch (e: Exception) {
+                    Log.e("SearchFragment", "Replace all failed", e)
+                    withContext(Dispatchers.Main) {
+                        toast("Replace failed: ${e.message}")
+                        dialog.dismiss()
+                    }
                 }
             }
         }
@@ -218,5 +264,9 @@ class SearchFragment : Fragment() {
     private fun toast(msg: String) =
         Toast.makeText(requireContext(), msg, Toast.LENGTH_SHORT).show()
 
-    override fun onDestroyView() { super.onDestroyView(); _b = null }
+    override fun onDestroyView() {
+        searchJob?.cancel()
+        super.onDestroyView()
+        _b = null
+    }
 }
