@@ -1,10 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Dracula Theme Colors -->
+    <!-- ============================================ -->
+    <!-- Dracula Theme Colors (Editor)                -->
+    <!-- ============================================ -->
     <color name="bg_primary">#282A36</color>
     <color name="bg_secondary">#44475A</color>
     <color name="bg_card">#343746</color>
     <color name="bg_highlight">#6272A4</color>
+    <color name="bg_input">#383A42</color>
 
     <color name="text_primary">#F8F8F2</color>
     <color name="text_secondary">#6272A4</color>
@@ -12,12 +15,16 @@
 
     <color name="accent">#FF79C6</color>
     <color name="accent_secondary">#BD93F9</color>
+    <color name="accent_green">#50FA7B</color>
+    <color name="accent_yellow">#F1FA8C</color>
     <color name="success">#50FA7B</color>
     <color name="warning">#F1FA8C</color>
     <color name="error">#FF5555</color>
     <color name="info">#8BE9FD</color>
 
-    <!-- Syntax Highlighting -->
+    <!-- ============================================ -->
+    <!-- Syntax Highlighting Colors                   -->
+    <!-- ============================================ -->
     <color name="keyword">#FF79C6</color>
     <color name="string">#F1FA8C</color>
     <color name="comment">#6272A4</color>
@@ -27,13 +34,45 @@
     <color name="operator">#FFB86C</color>
     <color name="bracket_match">#FFB86C</color>
 
-    <!-- UI Elements -->
+    <!-- ============================================ -->
+    <!-- UI Elements Colors                           -->
+    <!-- ============================================ -->
     <color name="match_highlight">#44475A</color>
     <color name="current_line">#44475A</color>
     <color name="line_number">#6272A4</color>
     <color name="border">#6272A4</color>
+    <color name="divider">#6272A4</color>
+    <color name="folder_color">#8BE9FD</color>
 
-    <!-- Button States -->
+    <!-- ============================================ -->
+    <!-- Navigation Colors                            -->
+    <!-- ============================================ -->
+    <color name="nav_selected">#FF79C6</color>
+    <color name="nav_unselected">#6272A4</color>
+
+    <!-- ============================================ -->
+    <!-- Button States                                -->
+    <!-- ============================================ -->
     <color name="button_enabled">#FF79C6</color>
     <color name="button_disabled">#6272A4</color>
+
+    <!-- ============================================ -->
+    <!-- Legacy/Compatibility Colors                  -->
+    <!-- ============================================ -->
+    <color name="white">#FFFFFF</color>
+    <color name="black">#000000</color>
+    <color name="transparent">#00000000</color>
+    <color name="gray">#808080</color>
+    <color name="light_gray">#D3D3D3</color>
+    <color name="dark_gray">#333333</color>
+    <color name="red">#FF0000</color>
+    <color name="green">#00FF00</color>
+    <color name="blue">#0000FF</color>
+    <color name="yellow">#FFFF00</color>
+    <color name="cyan">#00FFFF</color>
+    <color name="magenta">#FF00FF</color>
+    <color name="orange">#FFA500</color>
+    <color name="purple">#800080</color>
+    <color name="pink">#FFC0CB</color>
+    <color name="brown">#A52A2A</color>
 </resources>
