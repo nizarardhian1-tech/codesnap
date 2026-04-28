@@ -25,7 +25,8 @@ import kotlinx.coroutines.withContext
 class EditorFragment : Fragment() {
 
     private lateinit var vm: SharedViewModel
-    private var binding: FragmentEditorBinding? = null
+    private var _binding: FragmentEditorBinding? = null
+    private val binding get() = _binding!!
 
     private var currentUri: Uri? = null
     private var currentFileName: String = ""
@@ -76,13 +77,13 @@ class EditorFragment : Fragment() {
     )
 
     override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
-        binding = FragmentEditorBinding.inflate(inflater, container, false)
-        return binding?.root
-    }
+    inflater: LayoutInflater,
+    container: ViewGroup?,
+    savedInstanceState: Bundle?
+): View {
+    _binding = FragmentEditorBinding.inflate(inflater, container, false)
+    return binding.root
+}
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -796,9 +797,9 @@ class EditorFragment : Fragment() {
     }
 
     override fun onDestroyView() {
-        syntaxHighlightJob?.cancel()
-        errorHighlightJob?.cancel()
-        super.onDestroyView()
-        binding = null
-    }
+    syntaxHighlightJob?.cancel()
+    errorHighlightJob?.cancel()
+    super.onDestroyView()
+    _binding = null
+}
 }
