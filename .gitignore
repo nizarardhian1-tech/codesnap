@@ -1,0 +1,21 @@
+# Android
+*.iml
+.gradle
+/local.properties
+/.idea
+.DS_Store
+/build
+/captures
+.externalNativeBuild
+.cxx
+local.properties
+
+# App build outputs
+app/build/
+
+# Keystore (JANGAN pernah commit keystore!)
+*.jks
+*.keystore
+
+# Kotlin
+*.kotlin_module
